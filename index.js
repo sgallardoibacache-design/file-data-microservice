@@ -9,17 +9,25 @@ const app = express();
 app.use(cors());
 app.use('/public', express.static(process.cwd() + '/public'));
 
-const upload = multer({ storage: multer.memoryStorage() });
+const upload = multer({ dest: 'uploads/' });
 
 app.get('/', function (req, res) {
   res.sendFile(process.cwd() + '/views/index.html');
 });
 
-app.post('/api/fileanalyse', upload.single('upfile'), function (req, res) {
-  res.json({
-    name: req.file.originalname,
-    type: req.file.mimetype,
-    size: req.file.size
+app.post('/api/fileanalyse', upload.any(), function (req, res) {
+  const file = req.files && req.files[0];
+
+  if (!file) {
+    return res.status(400).json({
+      error: 'No file uploaded'
+    });
+  }
+
+  return res.status(200).json({
+    name: file.originalname,
+    type: file.mimetype,
+    size: file.size
   });
 });
 
